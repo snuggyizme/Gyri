@@ -69,3 +69,18 @@ def run(code):
                 elif TAPE.y < y:
                     TAPE.up(y - TAPE.y)
             # ======================================================================
+
+            # ((((((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))))))))
+            case ":":
+                instruction = code[i+1:i+3]
+
+                match instruction:
+                    
+                    # Basic modification of integers
+                    # --------------------------------------------------------------
+                    case "set":
+                        """
+                        wait gah i dont want to code this its 1234 o clcok
+                        """
+                        startPosition = "gah"
+            # ((((((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))))))))
