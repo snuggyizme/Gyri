@@ -1,6 +1,9 @@
 from tape import Tape
 
-def parseNumber(string, index):
+def _throw(error: str, index: int):
+    raise Exception("GYRI: An error has occurred at character {index} - {error}.")
+
+def _parseNumber(string, index):
     """
     Read an optional integer starting at <string>[<index>].
     Returns (integer, newIndex)
@@ -11,6 +14,27 @@ def parseNumber(string, index):
     while j < len(string) and string[j] in "0123456789":
         j += 1
     return int(string[index:j]), j
+
+def _getArguments(string, index):
+    """
+    Reads an optional list of arguements for an instruction, starting at <string>[<index>].
+    The arguements should be in parenthesis and seperated by commas.
+    Returns (arguements[], newIndex)
+    """
+    if string[index] != "(":
+        return ([], index)
+    j = index
+    inside = True
+    while j < len(string) and inside:
+        if string[j] == ")":
+            inside = False
+
+def _parseCoordinate(string, index):
+    """
+    Reads a coordinate (e.g. @70, 5) starting at <string>[<index>].
+    Returns ((x, y), newIndex)
+    """
+    if index !=
 
 def run(code):
     TAPE = Tape()
@@ -24,25 +48,25 @@ def run(code):
             # Basic movement
             # ======================================================================
             case "w":
-                count, n = parseNumber(code, i)
+                count, n = _parseNumber(code, i)
                 
                 TAPE.up(count)
                 i = n
 
             case "a":
-                count, n = parseNumber(code, i)
+                count, n = _parseNumber(code, i)
 
                 TAPE.left(count)
                 i = n
             
             case "s":
-                count, n = parseNumber(code, i)
+                count, n = _parseNumber(code, i)
                 
                 TAPE.down(count)
                 i = n
             
             case "d":
-                count, n = parseNumber(code, i)
+                count, n = _parseNumber(code, i)
                 
                 TAPE.right(count)
                 i = n
@@ -51,11 +75,11 @@ def run(code):
             # Flight
             # ======================================================================
             case "@":
-                x, n = parseNumber(code, i)
+                x, n = _parseNumber(code, i)
 
                 i = n + 1 # Skip over the comma
 
-                y, n = parseNumber(code, i)
+                y, n = _parseNumber(code, i)
 
                 i = n
 

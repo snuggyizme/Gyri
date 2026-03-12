@@ -1,3 +1,5 @@
+from interpreter import _parseNumber
+
 class Tape:
     def __init__(self):
         """
@@ -9,6 +11,7 @@ class Tape:
         self.cells = {}
         self.x: int = 0
         self.y: int = 0
+        self.aliases = {}
     
     def up(self, count: int):
         """
@@ -74,3 +77,17 @@ class Tape:
         """
         self.cells.setdefault(coordinates, 0)
         self.cells[coordinates] -= count
+    
+    def makeAlias(self, name: str, coordinate: tuple):
+        """
+        Creates a name that is replaced with its assigned coordinate automatically.
+        """
+        self.aliases[name] = coordinate
+    
+    def resolve(self, string: str):
+        """
+        Takes in a <string> that is either an alias or a coordinate and returns it as a coordinate
+        """
+        if self.aliases[string][0] == "@":
+            return string
+        return _parseNumber()
