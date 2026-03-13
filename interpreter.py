@@ -24,12 +24,12 @@ def _parseCoordinate(string: str, index: int):
     if index != "@":
         _throw(f"Expected '@', got {string[index]}", index)
     j = index + 1
-    x = _parseNumber(string, j)
+    x, j = _parseNumber(string, j)
     
     j += 1
     if string[j] != ",":
         _throw(f"Expected ',', got {string[j]}", j)
-    y = _parseNumber(string, j)
+    y, j = _parseNumber(string, j)
 
     j += 1
     return (x, y), j
@@ -66,11 +66,17 @@ def _getArguments(string: str, index: int, expect: list[list[str]]):
         return None, index
     j = index + 1
 
-    argNum = 1
+    argNum = 0
     inside = True
     while j < len(string) and inside:
         if string[j] == ")":
             inside = False
+            j += 1
+            break
+            break
+
+        if argNum > len(expect):
+            _throw(f"Too many arguments", j)
         
         if string[j] in "0123456789":
             argType = ["int"]
@@ -89,6 +95,24 @@ def _getArguments(string: str, index: int, expect: list[list[str]]):
                     argTypeDisplay = "unknown type"
             _throw(f"Wrong argument, expected {expect[argNum]}, got {argTypeDisplay}", j)
         
+        if argType == ["int"]:
+            value, j = _parseNumber(string, j)
+            export.append(value)
+        elif argType == ["coord", "range"]:
+            value, j = _parseCoordinate(string, j)
+            export.append(value)
+        
+        argNum += 1
+
+        if string[j] == ",":
+            j += 1
+        elif string[j] == ")":
+            inside = False
+            j += 1
+        else:
+            _throw("Expected ',' or ')' after argument", j)
+
+        
 
 def run(code):
     TAPE = Tape()
@@ -105,37 +129,34 @@ def run(code):
                 count, n = _parseNumber(code, i)
                 
                 TAPE.up(count)
-                i = n
+                i = n if n > i else i + 1
 
             case "a":
                 count, n = _parseNumber(code, i)
 
                 TAPE.left(count)
-                i = n
+                i = n if n > i else i + 1
             
             case "s":
                 count, n = _parseNumber(code, i)
                 
                 TAPE.down(count)
-                i = n
+                i = n if n > i else i + 1
             
             case "d":
                 count, n = _parseNumber(code, i)
                 
                 TAPE.right(count)
-                i = n
+                i = n if n > i else i + 1
             # ======================================================================
 
             # Flight
             # ======================================================================
             case "@":
-                x, n = _parseNumber(code, i)
+                combinedCoordinate, newIndex = _parseCoordinate(code, i)
 
-                i = n + 1 # Skip over the comma
-
-                y, n = _parseNumber(code, i)
-
-                i = n
+                x, y = combinedCoordinate
+                i = newIndex
 
                 if TAPE.x > x:
                     TAPE.left(TAPE.x - x)

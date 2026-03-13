@@ -80,7 +80,7 @@ class Tape:
     
     def makeAlias(self, name: str, coordinate: tuple):
         """
-        Creates a name that is replaced with its assigned coordinate automatically.
+        Creates a name that is replaced with its assigned (x, y) coordinate automatically.
         """
         self.aliases[name] = coordinate
     
@@ -88,6 +88,6 @@ class Tape:
         """
         Takes in a <string> that is either an alias or a coordinate and returns it as a coordinate
         """
-        if self.aliases[string][0] == "@":
-            return string
-        return _parseCoordinate(string, 0)
+        if string in self.aliases:
+            return self.aliases[string]
+        return _parseCoordinate(string, 0)[0]
