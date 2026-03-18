@@ -3,6 +3,8 @@ TAPE = Tape()
 from range import Range
 
 import string
+from pathlib import Path
+import json
 
 def _throw(error: str, index: int):
     raise Exception("GYRI: An error has occurred at character {index} - {error}.")
@@ -63,7 +65,7 @@ def _parseName(string: str, index: int, stopper: str):
 
 def _getArguments(string: str, index: int, expect: list[list[str]]):
     """
-    Reads an optional list of arguements for an instruction, starting at <string>[<index>].
+    Reads an optional list of arguments for an instruction, starting at <string>[<index>].
     The arguements should be in parenthesis and seperated by commas.
     Returns (arguements[], newIndex), or (None, newIndex) if no arguements are found.
 
@@ -132,11 +134,20 @@ def _getArguments(string: str, index: int, expect: list[list[str]]):
     
     return export, j 
 
-INSTRUCTIONS: dict = {
-    "p": {
+INSTRUCTIONS: dict = {}
+__EXAMPLE_STRUCTURE__: dict = {
+    "r": {
         "set": {
-            "args": [["int"]],
-        }
+            "args": [["int"], ["coord"]],
+            "actions": [
+                [
+                    "will finish examples later"
+                ]
+            ]
+
+        },
+        "__tag__": "r",
+        "__name__": "Remote"
     }
 }
 
@@ -202,33 +213,56 @@ def run(code):
                     TAPE.up(y - TAPE.y)
             # ======================================================================
 
+            # Sets
+            # ======================================================================
+            case "#":
+                command, newIndex = _parseName(code, i, "<")
+                i = newIndex
+
+                arg, newIndex = _parseName(code, i, ">")
+                i = newIndex
+
+                match command:
+                    case "include":
+                        if not Path(f"{arg}.json").is_file():
+                            _throw(f"Could not find set at path {arg}", i)
+
+                        with open(f"{arg}.json", "r") as file:
+                            data = json.load(file)
+
+                        INSTRUCTIONS[data["__tag__"]] = data
+
+            # Just like C :P
+            # ======================================================================
+
         # ((((((((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))))))))))
         if c in string.ascii_lowercase and code[i+1] == ":":
             instruction = code[i+2:i+4]
-            i += 2
+            i += 5 # We are now at the opening bracket to the arguments argue
 
             if c == "p":
                 match instruction:
                     case "set":
                         # Arguments:
                         # 1 : int : amount to set to
-                        i += 3
+                        
                         args, newIndex = _getArguments(code, i, [["int"]])
                         i = newIndex
 
                         amount = args[0]
                         if amount == None:
-                            _throw("No arguement found for instruction :set", i)
+                            _throw("No argument found for command p:set", i)
 
                         TAPE.set(TAPE.x, TAPE.y, amount)
                     
                     case "inc":
                         # Arguments:
                         # 1 : int : count to increment by
-                        i += 3 # idea may have been done
+
+                        args, newIndex = _getArguments(code, i, [["int"]])
                     
                     case _:
-                        _throw("Unknown instruction", i)
+                        _throw(f"Unknown instruction '{instruction}' in set '{c}'", i)
 
             elif c == "i":
                 pass # io
