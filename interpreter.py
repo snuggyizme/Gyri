@@ -63,7 +63,7 @@ def _parseName(string: str, index: int, stopper: str):
         index += 1
     return export, index
 
-def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tuple[str] = ("(", ")")):
+def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tuple = ("(", ")")):
     """
     Reads an optional list of arguments for an instruction, starting at <string>[<index>].
     The arguements should be in parenthesis and seperated by commas.
@@ -137,13 +137,37 @@ def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tu
     return export, j 
 
 INSTRUCTIONS: dict = {}
+
 __EXAMPLE_STRUCTURE__: dict = {
     "r": {
         "set": {
             "args": [["int"], ["coord"]],
             "actions": [
                 [
-                    "will finish examples later"
+                    {
+                        "op": "datacreate",
+                        "identifiers": {
+                            "key": "p",
+                            "ins": "set",
+                            "ctr": None,
+                            "datakey": None
+                        },
+                    },
+                    {
+                        "op": "set_cmd",
+                        "identifiers": {
+                            "key": "p",
+                            "ins": "set",
+                            "ctr": None,
+                            "datakey": None
+                        }
+                        "args": [
+
+                        ]
+                    },
+                    {
+                        "": ""
+                    }
                 ]
             ]
 
