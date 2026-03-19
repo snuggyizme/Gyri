@@ -63,7 +63,7 @@ def _parseName(string: str, index: int, stopper: str):
         index += 1
     return export, index
 
-def _getArguments(string: str, index: int, expect: list[list[str]]):
+def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tuple[str] = ("(", ")")):
     """
     Reads an optional list of arguments for an instruction, starting at <string>[<index>].
     The arguements should be in parenthesis and seperated by commas.
@@ -74,11 +74,13 @@ def _getArguments(string: str, index: int, expect: list[list[str]]):
     "int": integer
     "coord": coordinate on 2D tape.
     "range": range of coordiantes on 2D tape.
+
+    <brackets> is an optional argument that changes what is detected for the start and end of the arguments.
     """
     export = []
     argType = []
 
-    if string[index] != "(":
+    if string[index] != brackets[0]:
         return None, index
     j = index + 1
 
@@ -126,11 +128,11 @@ def _getArguments(string: str, index: int, expect: list[list[str]]):
 
         if string[j] == ",":
             j += 1
-        elif string[j] == ")":
+        elif string[j] == brackets[1]:
             inside = False
             j += 1
         else:
-            _throw("Expected ',' or ')' after argument", j)
+            _throw(f"Expected ',' or '{brackets[1]}' after argument", j)
     
     return export, j 
 
@@ -219,15 +221,15 @@ def run(code):
                 command, newIndex = _parseName(code, i, "<")
                 i = newIndex
 
-                arg, newIndex = _parseName(code, i, ">")
-                i = newIndex
-
                 match command:
                     case "include":
-                        if not Path(f"{arg}.json").is_file():
-                            _throw(f"Could not find set at path {arg}", i)
+                        args, newIndex = _getArguments(code, i, [["str"]], ("<", ">"))
+                        i = newIndex
+                        
+                        if not Path(f"{args[0]}.json").is_file():
+                            _throw(f"Could not find set at path {args[0]}", i)
 
-                        with open(f"{arg}.json", "r") as file:
+                        with open(f"{args[0]}.json", "r") as file:
                             data = json.load(file)
 
                         INSTRUCTIONS[data["__tag__"]] = data
@@ -236,9 +238,9 @@ def run(code):
             # ======================================================================
 
         # ((((((((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))))))))))
-        if c in string.ascii_lowercase and code[i+1] == ":":
+        if c in (string.ascii_lowercase + "0123456789") and code[i+1] == ":":
             instruction = code[i+2:i+4]
-            i += 5 # We are now at the opening bracket to the arguments argue
+            i += 5 # We are now at the opening bracket to the arguments
 
             if c == "p":
                 match instruction:
