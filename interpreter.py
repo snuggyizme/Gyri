@@ -160,7 +160,7 @@ def _manageArgs(args: tuple | list, expect: list):
     
     return args, index
 
-def pset(inp):
+def pset(inp: tuple):
     """
     p:set
 
@@ -168,9 +168,7 @@ def pset(inp):
 
     Returns newIndex
     """
-    if not isinstance(string, None):
-        args, newIndex = _getArguments(string, index, [["int"]])
-        index = newIndex
+    args, index = inp
 
     amount = args[0]
     if amount == None:
@@ -178,7 +176,7 @@ def pset(inp):
 
     TAPE.set(TAPE.x, TAPE.y, amount)
 
-    return newIndex
+    return index
 
 def pinc(string, index, args):
     args, newIndex = _getArguments(code, i, [["int"]])
