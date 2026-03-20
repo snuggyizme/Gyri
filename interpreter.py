@@ -6,7 +6,7 @@ import string
 from pathlib import Path
 import json
 
-def _throw(error: str, index: int):
+def _throw(error: str, index: int | str):
     raise Exception("GYRI: An error has occurred at character {index} - {error}.")
 
 def _parseNumber(string: str, index: int):
@@ -134,48 +134,54 @@ def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tu
         else:
             _throw(f"Expected ',' or '{brackets[1]}' after argument", j)
     
-    return export, j 
+    return export, j
 
-INSTRUCTIONS: dict = {}
+def _exe(tag, command, args):
+    s = SETS[tag]
+    method = getattr(s, command)
+    return method(args)
 
-__EXAMPLE_STRUCTURE__: dict = {
-    "r": {
-        "set": {
-            "args": [["int"], ["coord"]],
-            "actions": [
-                [
-                    {
-                        "op": "datacreate",
-                        "identifiers": {
-                            "key": "p",
-                            "ins": "set",
-                            "ctr": None,
-                            "datakey": None
-                        },
-                    },
-                    {
-                        "op": "set_cmd",
-                        "identifiers": {
-                            "key": "p",
-                            "ins": "set",
-                            "ctr": None,
-                            "datakey": None
-                        }
-                        "args": [
+SETS: dict = {}
 
-                        ]
-                    },
-                    {
-                        "": ""
-                    }
-                ]
-            ]
+def _manageArgs(args: tuple | list, expect: list):
+    """
+    Used to call fuctions from the builtin sets (e.g. p / pointer)
 
-        },
-        "__tag__": "r",
-        "__name__": "Remote"
-    }
-}
+    <args> can be either (string, index) or a list of arguments
+
+    <expect> defines the expected arguements. Each item in <expect> is an arguement and are lists themselves.
+    Each item in <expect>[ARGUEMENT] is a string and is a type that is allowed in that arguement.
+    """
+    if isinstance(input, tuple):
+        string, index = args
+
+        args, newIndex = _getArguments(string, index, expect)
+        index = newIndex
+    
+    return args, index
+
+def pset(inp):
+    """
+    p:set
+
+    Arguments must be supplied using _manageArgs()
+
+    Returns newIndex
+    """
+    if not isinstance(string, None):
+        args, newIndex = _getArguments(string, index, [["int"]])
+        index = newIndex
+
+    amount = args[0]
+    if amount == None:
+        _throw("No argument found for command p:set", index if isinstance(index, int) else "Unknown index - outside of script")
+
+    TAPE.set(TAPE.x, TAPE.y, amount)
+
+    return newIndex
+
+def pinc(string, index, args):
+    args, newIndex = _getArguments(code, i, [["int"]])
 
 def run(code):
     i = 0
@@ -256,7 +262,7 @@ def run(code):
                         with open(f"{args[0]}.json", "r") as file:
                             data = json.load(file)
 
-                        INSTRUCTIONS[data["__tag__"]] = data
+                        SETS[data["__tag__"]] = data
 
             # Just like C :P
             # ======================================================================
@@ -270,29 +276,21 @@ def run(code):
                 match instruction:
                     case "set":
                         # Arguments:
-                        # 1 : int : amount to set to
+                        # 1 : int
                         
-                        args, newIndex = _getArguments(code, i, [["int"]])
-                        i = newIndex
-
-                        amount = args[0]
-                        if amount == None:
-                            _throw("No argument found for command p:set", i)
-
-                        TAPE.set(TAPE.x, TAPE.y, amount)
-                    
+                        pset(code, i)                    
                     case "inc":
                         # Arguments:
-                        # 1 : int : count to increment by
+                        # 1 : int
 
-                        args, newIndex = _getArguments(code, i, [["int"]])
+                        
                     
                     case _:
                         _throw(f"Unknown instruction '{instruction}' in set '{c}'", i)
 
             elif c == "i":
                 pass # io
-            elif instruction in INSTRUCTIONS[c]:
+            elif instruction in SETS[c]:
                 pass # imported
             else:
                 _throw("Unknown key: make sure you installed and imported the set correctly, and that you are using the correct set key", i) 
