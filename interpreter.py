@@ -136,6 +136,19 @@ def _getArguments(string: str, index: int, expect: list[list[str]], brackets: tu
     
     return export, j
 
+def _runtimeData():
+    """
+    Builds a dict of data + _exe() that is sent to all sets. Contents:
+
+    "exe": _exe
+    "pos": ( current pointer position; tuple )
+    """
+
+    return {
+        "exe": _exe,
+        "pos": TAPE.current
+    }
+
 def _exe(tag, command, args):
     s = SETS[tag]
     method = getattr(s, command)
@@ -178,8 +191,68 @@ def pset(inp: tuple):
 
     return index
 
-def pinc(string, index, args):
-    args, newIndex = _getArguments(code, i, [["int"]])
+def pinc(inp: tuple):
+    """
+    p:inc
+
+    Argumenst must be supplied using _manageArgs()
+
+    Returns newIndex
+    """
+    args, index = inp
+
+    amount = args[0]
+    if amount == None:
+        _throw("No argument found for command p:inc", index if isinstance(index, int) else "Unknown index - outside of script")
+    
+    TAPE.set(TAPE.x, TAPE.y, TAPE.get((TAPE.x, TAPE.y)) + amount)
+
+def pdec(inp: tuple):
+    """
+    p:dec
+
+    Arguments must be supplied using _manageArgs()
+
+    Returns newIndex
+    """
+    args, index = inp
+
+    amount = args[0]
+    if amount == None:
+        _throw("No argument found for command p:dec", index if isinstance(index, int) else "Unknown index - outside of script")
+    
+    TAPE.set(TAPE.x, TAPE.y, TAPE.get((TAPE.x, TAPE.y)) - amount)
+
+def pjmp(inp: tuple):
+    """
+    p:jmp
+
+    I like fly but jmp is normal so :(
+
+    Arguments must be supplied using _manageArgs()
+
+    Returns newIndex
+    """
+    args, index = inp
+
+    dst = args[0]
+    if dst == None:
+        _throw("No argument found for command p:jmp", index if isinstance(index, int) else "Unknown index - outside of script")
+    
+    x, y = (
+        dst[0] - TAPE.x,
+        dst[1] - TAPE.y,
+    )
+
+    if x > 0:
+        TAPE.right(x)
+    if x < 0:
+        TAPE.left(-x)
+    
+    if y > 0:
+        TAPE.up(y)
+    if y < 0:
+        TAPE.down(-y)
 
 def run(code):
     i = 0
@@ -275,19 +348,24 @@ def run(code):
                     case "set":
                         # Arguments:
                         # 1 : int
-                        
-                        pset(code, i)                    
+                        pset(_manageArgs((code, i)))                    
                     case "inc":
                         # Arguments:
                         # 1 : int
-
-                        
-                    
+                        pinc(_manageArgs((code, i)))
+                    case "jmp":
+                        # Arguments:
+                        # 1 : coord
+                        pjmp(_manageArgs((code, i)))
                     case _:
                         _throw(f"Unknown instruction '{instruction}' in set '{c}'", i)
 
             elif c == "i":
-                pass # io
+                match instruction:
+                    case "prt":
+                        # Arguments:
+                        # 1 : coord / range
+                        iprt(_manageArgs((code, i)))
             elif instruction in SETS[c]:
                 pass # imported
             else:
