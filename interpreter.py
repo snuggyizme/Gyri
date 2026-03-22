@@ -177,8 +177,10 @@ def pset(inp: tuple):
     """
     p:set
 
-    Arguments must be supplied using _manageArgs()
+    Sets the value at the current pointer position to a given number.
 
+    Arguments must be supplied using _manageArgs()
+    Takes [["int"]]
     Returns newIndex
     """
     args, index = inp
@@ -195,8 +197,10 @@ def pinc(inp: tuple):
     """
     p:inc
 
-    Argumenst must be supplied using _manageArgs()
+    Increments the value at the current pointer position by a given number.
 
+    Argumenst must be supplied using _manageArgs()
+    Takes [["int"]]
     Returns newIndex
     """
     args, index = inp
@@ -211,8 +215,10 @@ def pdec(inp: tuple):
     """
     p:dec
 
-    Arguments must be supplied using _manageArgs()
+    Decrements the value at the current pointer position by a given number
 
+    Arguments must be supplied using _manageArgs()
+    Takes [["int"]]
     Returns newIndex
     """
     args, index = inp
@@ -253,6 +259,52 @@ def pjmp(inp: tuple):
         TAPE.up(y)
     if y < 0:
         TAPE.down(-y)
+
+def iprt(inp: tuple):
+    """
+    i:prt
+
+    Prints the value at a coordinate or the values in a range as their ascii equivalent
+
+    Arguments must be supplied using _manageArgs()
+    Takes [["coord", "range"]]
+    Returns newIndex
+    """
+    args, index = inp
+
+    item = args[0]
+    if item == None:
+        _throw("No argument found for command i:prt", index if isinstance(index, int) else "Unknown index - outside of script")
+    elif isinstance(item, list): #  Range case
+        for i in item:
+            print(chr(i))
+    elif isinstance(item, tuple): # Coord case
+        print(chr(TAPE.get(item)))
+    
+    return index
+
+def iprn(inp: tuple):
+    """
+    i:prn
+
+    Prints the value at a coordinate or the values in a range as their ascii equivalent
+
+    Arguments must be supplied using _manageArgs()
+    Takes [["coord", "range"]]
+    Returns newIndex
+    """
+    args, index = inp
+
+    item = args[0]
+    if item == None:
+        _throw("No argument found for command i:prn", index if isinstance(index, int) else "Unknown index - outside of script")
+    elif isinstance(item, list): #  Range case
+        for i in item:
+            print(item[i])
+    elif isinstance(item, tuple): # Coord case
+        print(TAPE.get(item))
+
+    return index
 
 def run(code):
     i = 0
@@ -348,15 +400,15 @@ def run(code):
                     case "set":
                         # Arguments:
                         # 1 : int
-                        pset(_manageArgs((code, i)))                    
+                        i = pset(_manageArgs((code, i), [["int"]]))                    
                     case "inc":
                         # Arguments:
                         # 1 : int
-                        pinc(_manageArgs((code, i)))
+                        i = pinc(_manageArgs((code, i), [["int"]]))
                     case "jmp":
                         # Arguments:
                         # 1 : coord
-                        pjmp(_manageArgs((code, i)))
+                        i = pjmp(_manageArgs((code, i), [["coord"]]))
                     case _:
                         _throw(f"Unknown instruction '{instruction}' in set '{c}'", i)
 
@@ -365,7 +417,7 @@ def run(code):
                     case "prt":
                         # Arguments:
                         # 1 : coord / range
-                        iprt(_manageArgs((code, i)))
+                        i = iprt(_manageArgs((code, i)))
             elif instruction in SETS[c]:
                 pass # imported
             else:

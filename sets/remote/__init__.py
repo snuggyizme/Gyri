@@ -8,7 +8,7 @@ class Remote:
         self.contents = {
             "commands": [
                 "inc", "dec", "set", "get", "add", "sub", "mul", "fdv", "cdv", "hlp"
-            ] # [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]
+            ] # [///]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]  [   ]
         }
 
     def inc(self, runtimeData: dict, destination: tuple, value: int):
@@ -17,3 +17,4 @@ class Remote:
         self.exe("p", "jmp", destination)
         self.exe("p", "inc", value)
         self.exe("p", "jmp", source)
+    
